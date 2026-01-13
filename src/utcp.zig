@@ -46,6 +46,9 @@ pub const OAuth2Auth = @import("core/provider.zig").OAuth2Auth;
 // Loaders
 pub const JsonLoader = @import("loaders/json.zig").JsonLoader;
 pub const LoadResult = @import("loaders/json.zig").LoadResult;
+pub const OpenApiConverter = @import("loaders/openapi.zig").OpenApiConverter;
+pub const ConvertResult = @import("loaders/openapi.zig").ConvertResult;
+pub const convertFromString = @import("loaders/openapi.zig").convertFromString;
 
 // Utilities
 pub const substitute = @import("core/substitution.zig").substitute;
