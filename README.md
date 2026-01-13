@@ -9,14 +9,16 @@ A vendor-agnostic standard for LLM-tool integration supporting HTTP, CLI, MCP, S
 - **Zero-dependency core** - Uses Zig stdlib (`std.json`, `std.http`, `std.net`)
 - **Explicit error handling** - Zig error unions (no exceptions)
 - **Comptime polymorphism** - Generic transports via `comptime`
-- **6 Transport types** - HTTP, CLI, MCP (stdio/HTTP), SSE, WebSocket, Text
+- **9 Transport types** - HTTP, CLI, MCP, SSE, WebSocket, Text, UDP, GraphQL, gRPC
 - **4 Auth methods** - API Key, Basic, Bearer, OAuth2 (with token refresh)
 - **2 Tool loaders** - JSON, OpenAPI
+- **Streaming** - Incremental response processing
+- **Post-processors** - Response transformation and validation
 - **Memory efficient** - Arena allocators for request/response lifetimes
 
 ## Project Status
 
-**~95% Feature Parity with Go/Rust/TypeScript implementations**
+**100% Feature Parity with Go/Rust/TypeScript implementations**
 
 | Component | Status |
 |-----------|--------|
@@ -26,11 +28,16 @@ A vendor-agnostic standard for LLM-tool integration supporting HTTP, CLI, MCP, S
 | SSE Transport | ✅ Complete |
 | WebSocket Transport | ✅ Complete |
 | Text Transport | ✅ Complete |
+| UDP Transport | ✅ Complete |
+| GraphQL Transport | ✅ Complete |
+| gRPC-Web Transport | ✅ Complete |
 | API Key / Basic / Bearer Auth | ✅ Complete |
 | OAuth2 (client credentials + refresh) | ✅ Complete |
 | JSON Tool Loader | ✅ Complete |
 | OpenAPI Converter | ✅ Complete |
 | Repository (search by tag/provider/query) | ✅ Complete |
+| Streaming Responses | ✅ Complete |
+| Post-processors | ✅ Complete |
 | CI/CD (GitHub Actions) | ✅ Complete |
 
 ## Quick Start
