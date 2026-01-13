@@ -13,12 +13,12 @@
 - [x] Example: calling a REST API tool
 - [ ] Integration test against mock HTTP server
 
-## Phase 3: CLI Transport (Next)
-- [ ] cli.zig transport using std.process.Child
-- [ ] Capture stdout/stderr -> JSON parsing
-- [ ] Example: calling a CLI tool
+## Phase 3: CLI Transport
+- [x] cli.zig transport using std.process.Child
+- [x] Capture stdout/stderr -> JSON parsing
+- [x] Example: calling a CLI tool
 
-## Phase 4: MCP Transport
+## Phase 4: MCP Transport (Next)
 - [ ] mcp.zig: JSON-RPC 2.0 stdio mode
 - [ ] MCP SSE mode (HTTP + SSE for events)
 - [ ] Example: MCP client + server

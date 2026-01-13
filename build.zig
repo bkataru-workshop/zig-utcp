@@ -43,4 +43,23 @@ pub fn build(b: *std.Build) void {
     run_http.step.dependOn(&install_http.step);
     const run_http_step = b.step("run-http", "Run HTTP client example");
     run_http_step.dependOn(&run_http.step);
+
+    // Example: CLI client
+    const cli_example = b.addExecutable(.{
+        .name = "cli_client",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/cli_client.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    cli_example.root_module.addImport("utcp", utcp_mod);
+    
+    const install_cli = b.addInstallArtifact(cli_example, .{});
+    example_step.dependOn(&install_cli.step);
+    
+    const run_cli = b.addRunArtifact(cli_example);
+    run_cli.step.dependOn(&install_cli.step);
+    const run_cli_step = b.step("run-cli", "Run CLI client example");
+    run_cli_step.dependOn(&run_cli.step);
 }

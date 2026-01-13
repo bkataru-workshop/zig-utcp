@@ -21,6 +21,7 @@ pub const InMemoryToolRepository = @import("repository/memory.zig").InMemoryTool
 
 // Transports
 pub const HttpTransport = @import("transports/http.zig").HttpTransport;
+pub const CliTransport = @import("transports/cli.zig").CliTransport;
 
 // Utilities
 pub const substitute = @import("core/substitution.zig").substitute;
