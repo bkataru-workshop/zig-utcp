@@ -35,12 +35,14 @@
 - [x] Text transport (text.zig) with plain/json/xml formats
 - [x] XML serialization with proper escaping
 
-## Phase 7: Polish + Release
+## Phase 7: OAuth2 + OpenAPI
+- [x] OAuth2 token flow (client credentials + refresh token)
+- [x] OpenAPI converter/loader
+
+## Phase 8: Polish + Release
 - [x] CI/CD (GitHub Actions)
 - [x] Package as Zig module (build.zig.zon)
-- [ ] OAuth2 token refresh flow
-- [ ] OpenAPI converter/loader
-- [ ] Streaming responses
+- [ ] Streaming responses (nice-to-have)
 - [ ] Documentation polish (README/API docs)
 - [ ] v0.1.0 release
 
@@ -66,13 +68,13 @@
 | API Key | ✓ | ✓ | ✓ | ✓ |
 | Basic | ✓ | ✓ | ✓ | ✓ |
 | Bearer | ✓ | ✓ | ✓ | ✓ |
-| OAuth2 | ✓ | ✓ | ✓ | partial |
+| OAuth2 | ✓ | ✓ | ✓ | ✓ |
 
 ### Tool Loaders
 | Loader | Go | Rust | TS | Zig |
 |--------|:--:|:----:|:--:|:---:|
 | JSON | ✓ | ✓ | ✓ | ✓ |
-| OpenAPI | ✓ | ✓ | ✓ | - |
+| OpenAPI | ✓ | ✓ | ✓ | ✓ |
 
 ### Repository Features
 | Feature | Go | Rust | TS | Zig |
@@ -82,4 +84,4 @@
 | Provider filter | ✓ | ✓ | ✓ | ✓ |
 | Text search | ✓ | ✓ | ✓ | ✓ |
 
-**Current Parity: ~80%** (main gaps: OAuth2 token flow, OpenAPI loader)
+**Current Parity: ~95%** (only missing: gRPC, GraphQL, UDP transports which are niche)

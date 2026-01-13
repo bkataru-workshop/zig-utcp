@@ -9,30 +9,29 @@ A vendor-agnostic standard for LLM-tool integration supporting HTTP, CLI, MCP, S
 - **Zero-dependency core** - Uses Zig stdlib (`std.json`, `std.http`, `std.net`)
 - **Explicit error handling** - Zig error unions (no exceptions)
 - **Comptime polymorphism** - Generic transports via `comptime`
-- **Multiple transports** - HTTP, CLI, MCP (stdio/SSE), SSE, WebSocket, TCP, UDP
-- **Plugin architecture** - Extensible transport and auth plugins
+- **6 Transport types** - HTTP, CLI, MCP (stdio/HTTP), SSE, WebSocket, Text
+- **4 Auth methods** - API Key, Basic, Bearer, OAuth2 (with token refresh)
+- **2 Tool loaders** - JSON, OpenAPI
 - **Memory efficient** - Arena allocators for request/response lifetimes
 
 ## Project Status
 
-**Phase 1: Foundation** ✅ COMPLETE
-- ✅ Core types (`Tool`, `ToolCallRequest`, `ToolCallResponse`, `CallTemplate`)
-- ✅ Error types (`UtcpError`)
-- ✅ Provider & Auth types
-- ✅ `InMemoryToolRepository`
-- ✅ Build system (`build.zig`)
+**~95% Feature Parity with Go/Rust/TypeScript implementations**
 
-**Phase 2: HTTP Transport** ✅ COMPLETE
-- ✅ HTTP transport (`src/transports/http.zig`)
-- ✅ Variable substitution (`{input.field}`, `{env.VAR}`)
-- ✅ Auth support (API key, Basic, Bearer)
-- ✅ JSON request/response handling
-- ✅ Working example (`zig build run-http`)
-
-**Phase 3: CLI Transport** (Next)
-- ⏳ CLI transport with `std.process.Child`
-- ⏳ Stdin/stdout/stderr handling
-- ⏳ CLI example
+| Component | Status |
+|-----------|--------|
+| HTTP Transport | ✅ Complete |
+| CLI Transport | ✅ Complete |
+| MCP Transport (stdio + HTTP) | ✅ Complete |
+| SSE Transport | ✅ Complete |
+| WebSocket Transport | ✅ Complete |
+| Text Transport | ✅ Complete |
+| API Key / Basic / Bearer Auth | ✅ Complete |
+| OAuth2 (client credentials + refresh) | ✅ Complete |
+| JSON Tool Loader | ✅ Complete |
+| OpenAPI Converter | ✅ Complete |
+| Repository (search by tag/provider/query) | ✅ Complete |
+| CI/CD (GitHub Actions) | ✅ Complete |
 
 ## Quick Start
 
@@ -53,6 +52,12 @@ zig build examples # Build example programs
 ```bash
 # HTTP client example (calls wttr.in weather API)
 zig build run-http
+
+# CLI client example
+zig build run-cli
+
+# MCP client example
+zig build run-mcp
 ```
 
 ### Example Usage
@@ -99,24 +104,11 @@ pub fn main() !void {
 
     // Call the tool
     const response = try transport.call(weather_tool, request, null);
-    defer {
-        switch (response.output) {
-            .string => |s| allocator.free(s),
-            else => {},
-        }
-    }
-
-    // Handle response
-    if (response.error_msg) |err| {
-        std.debug.print("Error: {s}\n", .{err});
-        allocator.free(err);
-    } else {
-        std.debug.print("Success: {any}\n", .{response.output});
-    }
+    std.debug.print("Response: {any}\n", .{response.output});
 }
 ```
 
-See `examples/http_client.zig` for a complete working example.
+See `examples/` for complete working examples.
 
 ## Architecture
 
@@ -132,32 +124,27 @@ src/
 │   ├── errors.zig     # Error types
 │   └── substitution.zig  # Variable substitution engine
 ├── repository/        # Tool storage
-│   └── memory.zig     # InMemoryToolRepository
+│   └── memory.zig     # InMemoryToolRepository (with search)
 ├── transports/        # Transport implementations
-│   └── http.zig       # ✅ HTTP transport (Phase 2)
+│   ├── http.zig       # HTTP transport + OAuth2
+│   ├── cli.zig        # CLI transport
+│   ├── mcp.zig        # MCP transport (stdio + HTTP)
+│   ├── sse.zig        # SSE transport
+│   ├── websocket.zig  # WebSocket transport
+│   └── text.zig       # Text transport (plain/json/xml)
+├── loaders/           # Tool loaders
+│   ├── json.zig       # JSON tool loader
+│   └── openapi.zig    # OpenAPI converter
 └── utcp.zig           # Public API
 ```
 
 ## Development
-
-### Project Organization
-
-- `src/` - Library source code
-- `examples/` - Example programs
-- `tests/` - Integration tests
-- `docs/` - Architecture and design docs
-- `zig-kb/` - (Optional) Zig 0.15.2 stdlib reference (ignored by default)
-- `utcp-upstream/` - (Optional) cloned UTCP reference implementations (ignored by default)
-- `utcp-repomix/` - (Optional) bundled reference implementations (ignored by default)
 
 ### Testing
 
 ```bash
 # Run all tests
 zig build test
-
-# Run specific test
-zig test src/repository/memory.zig
 ```
 
 ### Code Style
@@ -171,11 +158,17 @@ zig test src/repository/memory.zig
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for development timeline.
 
-**Phase 1**: Foundation - Core types, repository, build system ✅  
-**Phase 2**: HTTP transport + variable substitution ✅  
-**Phase 3** (Next): CLI transport  
-**Phase 4**: MCP transport  
-**Phase 5**: Polish + v0.1.0 release  
+**Completed:**
+- Phase 1: Foundation (core types, repository, build system)
+- Phase 2: HTTP Transport + Auth
+- Phase 3: CLI Transport
+- Phase 4: MCP Transport
+- Phase 5: SSE + JSON Loader + Enhanced Repository
+- Phase 6: WebSocket + Text Transports
+- Phase 7: OAuth2 + OpenAPI Converter
+
+**Remaining:**
+- Phase 8: Polish + v0.1.0 release
 
 ## References
 
