@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-linux
+          - os: ubuntu-latest
+            target: aarch64-linux
+          - os: windows-latest
+            target: x86_64-windows
+          - os: macos-latest
+            target: x86_64-macos
+          - os: macos-latest
+            target: aarch64-macos
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: 0.15.2
+
+      - name: Build library
+        run: zig build -Doptimize=ReleaseFast
+
+      - name: Run tests
+        run: zig build test
+
+      - name: Generate docs
+        run: zig build docs
+
+      - name: Create archive (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p release
+          cp -r src release/
+          cp -r docs release/
+          cp -r examples release/
+          cp README.md LICENSE CHANGELOG.md build.zig build.zig.zon release/
+          tar -czvf zig-utcp-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C release .
+
+      - name: Create archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release
+          Copy-Item -Recurse src release/
+          Copy-Item -Recurse docs release/
+          Copy-Item -Recurse examples release/
+          Copy-Item README.md, LICENSE, CHANGELOG.md, build.zig, build.zig.zon release/
+          Compress-Archive -Path release/* -DestinationPath zig-utcp-${{ github.ref_name }}-${{ matrix.target }}.zip
+
+      - name: Generate checksums (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          sha256sum zig-utcp-${{ github.ref_name }}-${{ matrix.target }}.tar.gz > zig-utcp-${{ github.ref_name }}-${{ matrix.target }}.tar.gz.sha256
+
+      - name: Generate checksums (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $hash = Get-FileHash zig-utcp-${{ github.ref_name }}-${{ matrix.target }}.zip -Algorithm SHA256
+          "$($hash.Hash.ToLower())  zig-utcp-${{ github.ref_name }}-${{ matrix.target }}.zip" | Out-File -Encoding ASCII zig-utcp-${{ github.ref_name }}-${{ matrix.target }}.zip.sha256
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: |
+            zig-utcp-*.tar.gz
+            zig-utcp-*.zip
+            *.sha256
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

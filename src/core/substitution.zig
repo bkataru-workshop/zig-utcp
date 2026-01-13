@@ -138,3 +138,107 @@ test "substitute env variables" {
         result,
     );
 }
+
+test "substitute with no variables" {
+    const testing = std.testing;
+    const allocator = testing.allocator;
+
+    const inputs = std.json.Value{ .object = std.json.ObjectMap.init(allocator) };
+
+    const template = "https://api.example.com/static-path";
+    const result = try substitute(allocator, template, inputs, null);
+    defer allocator.free(result);
+
+    try testing.expectEqualStrings(
+        "https://api.example.com/static-path",
+        result,
+    );
+}
+
+test "substitute with numeric types" {
+    const testing = std.testing;
+    const allocator = testing.allocator;
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const aa = arena.allocator();
+
+    var obj = std.json.ObjectMap.init(aa);
+    try obj.put("count", .{ .integer = 42 });
+    try obj.put("ratio", .{ .float = 3.14 });
+    try obj.put("flag", .{ .bool = true });
+
+    const inputs = std.json.Value{ .object = obj };
+
+    const result = try substitute(allocator, "count={count}&ratio={ratio}&flag={flag}", inputs, null);
+    defer allocator.free(result);
+
+    try testing.expectEqualStrings(
+        "count=42&ratio=3.14&flag=true",
+        result,
+    );
+}
+
+test "substitute missing variable returns error" {
+    const testing = std.testing;
+    const allocator = testing.allocator;
+
+    const inputs = std.json.Value{ .object = std.json.ObjectMap.init(allocator) };
+
+    const template = "value={missing}";
+    const result = substitute(allocator, template, inputs, null);
+    try testing.expectError(error.VariableNotFound, result);
+}
+
+test "substitute with input prefix" {
+    const testing = std.testing;
+    const allocator = testing.allocator;
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const aa = arena.allocator();
+
+    var obj = std.json.ObjectMap.init(aa);
+    try obj.put("name", .{ .string = "test" });
+
+    const inputs = std.json.Value{ .object = obj };
+
+    const result = try substitute(allocator, "value={input.name}", inputs, null);
+    defer allocator.free(result);
+
+    try testing.expectEqualStrings("value=test", result);
+}
+
+test "substitute empty template" {
+    const testing = std.testing;
+    const allocator = testing.allocator;
+
+    const inputs = std.json.Value{ .object = std.json.ObjectMap.init(allocator) };
+
+    const result = try substitute(allocator, "", inputs, null);
+    defer allocator.free(result);
+
+    try testing.expectEqualStrings("", result);
+}
+
+test "substitute braces without matching" {
+    const testing = std.testing;
+    const allocator = testing.allocator;
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const aa = arena.allocator();
+
+    var obj = std.json.ObjectMap.init(aa);
+    try obj.put("x", .{ .string = "val" });
+
+    const inputs = std.json.Value{ .object = obj };
+
+    // Unclosed brace - the current implementation treats it as literal text
+    // since it searches for } and doesn't find it, appends characters one by one
+    const result = try substitute(allocator, "test{x", inputs, null);
+    defer allocator.free(result);
+
+    // The current behavior: unclosed brace is treated as literal
+    try testing.expectEqualStrings("test{x", result);
+}

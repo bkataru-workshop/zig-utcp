@@ -74,6 +74,65 @@ pub const jsonValidateProcessor = @import("core/postprocessor.zig").jsonValidate
 pub const extractFieldProcessor = @import("core/postprocessor.zig").extractFieldProcessor;
 pub const maskProcessor = @import("core/postprocessor.zig").maskProcessor;
 
+// Debug mode
+pub const debug = @import("core/debug.zig");
+pub const LogLevel = @import("core/debug.zig").LogLevel;
+pub const DebugConfig = @import("core/debug.zig").DebugConfig;
+pub const Timer = @import("core/debug.zig").Timer;
+
+// Retry policies
+pub const retry = @import("core/retry.zig");
+pub const RetryPolicy = @import("core/retry.zig").RetryPolicy;
+pub const RetryContext = @import("core/retry.zig").RetryContext;
+
+// Middleware
+pub const middleware = @import("core/middleware.zig");
+pub const Middleware = @import("core/middleware.zig").Middleware;
+pub const MiddlewareChain = @import("core/middleware.zig").MiddlewareChain;
+pub const MiddlewareContext = @import("core/middleware.zig").MiddlewareContext;
+
+// Circuit breaker
+pub const circuit_breaker = @import("core/circuit_breaker.zig");
+pub const CircuitBreaker = @import("core/circuit_breaker.zig").CircuitBreaker;
+pub const CircuitBreakerConfig = @import("core/circuit_breaker.zig").CircuitBreakerConfig;
+pub const CircuitBreakerRegistry = @import("core/circuit_breaker.zig").CircuitBreakerRegistry;
+pub const CircuitState = @import("core/circuit_breaker.zig").CircuitState;
+
+// Rate limiting
+pub const rate_limit = @import("core/rate_limit.zig");
+pub const RateLimitConfig = @import("core/rate_limit.zig").RateLimitConfig;
+pub const TokenBucket = @import("core/rate_limit.zig").TokenBucket;
+pub const SlidingWindow = @import("core/rate_limit.zig").SlidingWindow;
+pub const FixedWindow = @import("core/rate_limit.zig").FixedWindow;
+pub const RateLimiterRegistry = @import("core/rate_limit.zig").RateLimiterRegistry;
+
+// Caching
+pub const cache = @import("core/cache.zig");
+pub const ResponseCache = @import("core/cache.zig").ResponseCache;
+pub const CacheConfig = @import("core/cache.zig").CacheConfig;
+pub const CacheEntry = @import("core/cache.zig").CacheEntry;
+pub const CacheStats = @import("core/cache.zig").CacheStats;
+
+// Batch requests
+pub const batch = @import("core/batch.zig");
+pub const BatchExecutor = @import("core/batch.zig").BatchExecutor;
+pub const BatchBuilder = @import("core/batch.zig").BatchBuilder;
+pub const BatchConfig = @import("core/batch.zig").BatchConfig;
+pub const BatchResult = @import("core/batch.zig").BatchResult;
+pub const BatchResults = @import("core/batch.zig").BatchResults;
+
+// Validation
+pub const validation = @import("core/validation.zig");
+pub const SchemaValidator = @import("core/validation.zig").SchemaValidator;
+pub const ValidationResult = @import("core/validation.zig").ValidationResult;
+pub const ValidationError = @import("core/validation.zig").ValidationError;
+
+// Mock transport for testing
+pub const mock = @import("core/mock.zig");
+pub const MockTransport = @import("core/mock.zig").MockTransport;
+pub const MockResponse = @import("core/mock.zig").MockResponse;
+pub const MockTransportBuilder = @import("core/mock.zig").MockTransportBuilder;
+
 // Utilities
 pub const substitute = @import("core/substitution.zig").substitute;
 pub const buildQuery = @import("transports/graphql.zig").buildQuery;

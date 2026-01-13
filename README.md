@@ -16,6 +16,21 @@ A vendor-agnostic standard for LLM-tool integration supporting HTTP, CLI, MCP, S
 - **Post-processors** - Response transformation and validation
 - **Memory efficient** - Arena allocators for request/response lifetimes
 
+### New in v0.2.0
+
+- **CLI Tool** - `utcp` command for testing tool definitions
+- **Middleware** - Request/response interceptors for logging, metrics, auth injection
+- **Circuit Breaker** - Prevent cascading failures with automatic recovery
+- **Rate Limiting** - Token bucket, sliding window, and fixed window algorithms
+- **Response Caching** - TTL-based caching with configurable max entries
+- **Batch Requests** - Execute multiple tool calls in parallel
+- **Debug Mode** - Verbose logging with request/response timing
+- **Schema Validation** - Validate tool inputs against JSON Schema
+- **Mock Transport** - Unit testing without network calls
+- **Retry Policies** - Exponential backoff with jitter for transient failures
+- **Benchmarks** - Performance regression testing with `zig build bench`
+- **API Docs** - Generate documentation with `zig build docs`
+
 ## Requirements
 
 - Zig 0.15.2 or later
@@ -171,6 +186,20 @@ zig build run-cli
 
 # MCP client
 zig build run-mcp
+
+# Streaming example
+zig build run-streaming
+
+# Post-processor example
+zig build run-postprocessor
+
+# OAuth2 example
+zig build run-oauth2
+
+# UTCP CLI tool
+zig build run-utcp -- help
+zig build run-utcp -- info
+zig build run-utcp -- load tools.json
 ```
 
 See `examples/` for complete working examples.
@@ -231,6 +260,90 @@ try chain.addFn("log", utcp.logProcessor);
 try chain.process(&response);
 ```
 
+### Middleware
+
+```zig
+var chain = utcp.MiddlewareChain.init(allocator);
+defer chain.deinit();
+
+// Add logging middleware
+try chain.add(.{
+    .name = "logger",
+    .on_request = logRequest,
+    .on_response = logResponse,
+});
+
+// Process request through middleware
+try chain.processRequest(&context);
+const response = try transport.call(tool, request, provider);
+try chain.processResponse(&context, &response);
+```
+
+### Circuit Breaker
+
+```zig
+var breaker = utcp.CircuitBreaker.init(.{
+    .failure_threshold = 5,
+    .reset_timeout_ms = 30000,
+});
+
+if (breaker.canExecute()) {
+    const result = transport.call(tool, request, provider);
+    if (result) |resp| {
+        breaker.recordSuccess();
+    } else |_| {
+        breaker.recordFailure();
+    }
+}
+```
+
+### Rate Limiting
+
+```zig
+var limiter = utcp.TokenBucket.init(.{
+    .burst_size = 100,
+    .refill_rate = 10.0, // tokens per second
+});
+
+if (limiter.tryAcquire()) {
+    // Proceed with request
+} else {
+    // Rate limited
+}
+```
+
+### Response Caching
+
+```zig
+var cache_inst = utcp.ResponseCache.init(allocator, .{
+    .max_entries = 1000,
+    .default_ttl_ms = 300000, // 5 minutes
+});
+defer cache_inst.deinit();
+
+// Check cache
+if (cache_inst.get(cache_key)) |cached| {
+    return cached;
+}
+
+// Make request and cache
+const response = try transport.call(tool, request, provider);
+try cache_inst.put(cache_key, response);
+```
+
+### Mock Transport (Testing)
+
+```zig
+var mock = utcp.MockTransportBuilder.init(allocator)
+    .expectCall("weather_api", .{ .output = .{ .string = "{\"temp\":20}" } })
+    .expectCall("translate", .{ .output = .{ .string = "Bonjour" } })
+    .build();
+defer mock.deinit();
+
+const response = try mock.call(tool, request, null);
+try mock.verify(); // Fails if expectations not met
+```
+
 ## Architecture
 
 ```
@@ -241,11 +354,21 @@ src/
 │   ├── errors.zig     # Error types
 │   ├── substitution.zig  # Variable substitution
 │   ├── streaming.zig  # Streaming responses
-│   └── postprocessor.zig # Post-processors
+│   ├── postprocessor.zig # Post-processors
+│   ├── middleware.zig # Request/response interceptors
+│   ├── circuit_breaker.zig # Circuit breaker pattern
+│   ├── rate_limit.zig # Rate limiting algorithms
+│   ├── cache.zig      # Response caching
+│   ├── batch.zig      # Batch request execution
+│   ├── validation.zig # JSON Schema validation
+│   ├── debug.zig      # Debug logging
+│   ├── retry.zig      # Retry policies
+│   └── mock.zig       # Mock transport for testing
 ├── repository/
 │   └── memory.zig     # InMemoryToolRepository with search
 ├── transports/        # Transport implementations
 ├── loaders/           # Tool loaders (JSON, OpenAPI)
+├── cli.zig            # CLI tool
 └── utcp.zig           # Public API
 ```
 

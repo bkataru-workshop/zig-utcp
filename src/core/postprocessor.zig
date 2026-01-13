@@ -203,3 +203,117 @@ test "trim processor" {
     try std.testing.expectEqualStrings("hello world", response.output.string);
     allocator.free(response.output.string);
 }
+
+test "trim processor no change needed" {
+    const allocator = std.testing.allocator;
+
+    const original = try allocator.dupe(u8, "no-whitespace");
+    var response = ToolCallResponse{
+        .output = .{ .string = original },
+    };
+
+    try trimProcessor(allocator, &response, null);
+
+    try std.testing.expectEqualStrings("no-whitespace", response.output.string);
+    allocator.free(response.output.string);
+}
+
+test "trim processor empty string" {
+    const allocator = std.testing.allocator;
+
+    const original = try allocator.dupe(u8, "   ");
+    var response = ToolCallResponse{
+        .output = .{ .string = original },
+    };
+
+    try trimProcessor(allocator, &response, null);
+
+    try std.testing.expectEqualStrings("", response.output.string);
+    allocator.free(response.output.string);
+}
+
+test "processor chain execution order" {
+    const allocator = std.testing.allocator;
+
+    var chain = PostProcessorChain.init(allocator);
+    defer chain.deinit();
+
+    // Add with different priorities - higher priority number runs later
+    try chain.add(.{
+        .name = "third",
+        .processor = logProcessor,
+        .priority = 30,
+    });
+    try chain.add(.{
+        .name = "first",
+        .processor = logProcessor,
+        .priority = 10,
+    });
+    try chain.add(.{
+        .name = "second",
+        .processor = logProcessor,
+        .priority = 20,
+    });
+
+    try std.testing.expectEqualStrings("first", chain.processors.items[0].name);
+    try std.testing.expectEqualStrings("second", chain.processors.items[1].name);
+    try std.testing.expectEqualStrings("third", chain.processors.items[2].name);
+}
+
+test "json validate processor valid json" {
+    const allocator = std.testing.allocator;
+
+    const original = try allocator.dupe(u8, "{\"key\":\"value\"}");
+    var response = ToolCallResponse{
+        .output = .{ .string = original },
+    };
+
+    try jsonValidateProcessor(allocator, &response, null);
+
+    try std.testing.expect(response.error_msg == null);
+    allocator.free(response.output.string);
+}
+
+test "json validate processor invalid json" {
+    const allocator = std.testing.allocator;
+
+    const original = try allocator.dupe(u8, "{invalid json}");
+    var response = ToolCallResponse{
+        .output = .{ .string = original },
+    };
+
+    try jsonValidateProcessor(allocator, &response, null);
+
+    try std.testing.expect(response.error_msg != null);
+    allocator.free(response.output.string);
+}
+
+test "processor with non-string output" {
+    const allocator = std.testing.allocator;
+
+    // Trim should be no-op for non-string output
+    var response = ToolCallResponse{
+        .output = .{ .integer = 42 },
+    };
+
+    try trimProcessor(allocator, &response, null);
+
+    try std.testing.expectEqual(@as(i64, 42), response.output.integer);
+}
+
+test "empty processor chain" {
+    const allocator = std.testing.allocator;
+
+    var chain = PostProcessorChain.init(allocator);
+    defer chain.deinit();
+
+    const original = try allocator.dupe(u8, "test");
+    var response = ToolCallResponse{
+        .output = .{ .string = original },
+    };
+
+    try chain.process(&response);
+
+    try std.testing.expectEqualStrings("test", response.output.string);
+    allocator.free(response.output.string);
+}
