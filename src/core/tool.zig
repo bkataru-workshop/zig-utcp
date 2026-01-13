@@ -37,6 +37,9 @@ pub const CallTemplate = union(enum) {
     sse: SseCallTemplate,
     websocket: WebSocketCallTemplate,
     text: TextCallTemplate,
+    udp: UdpCallTemplate,
+    grpc: GrpcCallTemplate,
+    graphql: GraphqlCallTemplate,
 };
 
 // --- HTTP Transport ---
@@ -103,4 +106,33 @@ pub const TextFormat = enum {
     plain,
     json,
     xml,
+};
+
+// --- UDP Transport ---
+
+pub const UdpCallTemplate = struct {
+    host: []const u8,
+    port: u16,
+    timeout_ms: u32 = 5000,
+};
+
+// --- gRPC Transport ---
+
+pub const GrpcCallTemplate = struct {
+    endpoint: []const u8,
+    service: []const u8,
+    method: []const u8,
+    proto_file: ?[]const u8 = null,
+    timeout_ms: u32 = 30000,
+};
+
+// --- GraphQL Transport ---
+
+pub const GraphqlCallTemplate = struct {
+    endpoint: []const u8,
+    query: []const u8,
+    operation_name: ?[]const u8 = null,
+    variables_template: ?[]const u8 = null,
+    headers: ?std.StringHashMap([]const u8) = null,
+    timeout_ms: u32 = 30000,
 };

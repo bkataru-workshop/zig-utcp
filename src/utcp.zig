@@ -1,7 +1,7 @@
 //! zig-utcp: Universal Tool Calling Protocol implementation for Zig
 //! 
 //! This library provides a vendor-agnostic standard for LLM-tool integration
-//! supporting HTTP, CLI, MCP, SSE, WebSocket, and more.
+//! supporting HTTP, CLI, MCP, SSE, WebSocket, GraphQL, gRPC, UDP, and more.
 
 const std = @import("std");
 
@@ -16,6 +16,9 @@ pub const McpCallTemplate = @import("core/tool.zig").McpCallTemplate;
 pub const SseCallTemplate = @import("core/tool.zig").SseCallTemplate;
 pub const WebSocketCallTemplate = @import("core/tool.zig").WebSocketCallTemplate;
 pub const TextCallTemplate = @import("core/tool.zig").TextCallTemplate;
+pub const UdpCallTemplate = @import("core/tool.zig").UdpCallTemplate;
+pub const GrpcCallTemplate = @import("core/tool.zig").GrpcCallTemplate;
+pub const GraphqlCallTemplate = @import("core/tool.zig").GraphqlCallTemplate;
 pub const Provider = @import("core/provider.zig").Provider;
 pub const Auth = @import("core/provider.zig").Auth;
 pub const UtcpError = @import("core/errors.zig").UtcpError;
@@ -33,6 +36,10 @@ pub const SseEvent = @import("transports/sse.zig").SseEvent;
 pub const WebSocketTransport = @import("transports/websocket.zig").WebSocketTransport;
 pub const TextTransport = @import("transports/text.zig").TextTransport;
 pub const TextFormat = @import("core/tool.zig").TextFormat;
+pub const UdpTransport = @import("transports/udp.zig").UdpTransport;
+pub const GraphqlTransport = @import("transports/graphql.zig").GraphqlTransport;
+pub const GrpcTransport = @import("transports/grpc.zig").GrpcTransport;
+pub const GrpcStatus = @import("transports/grpc.zig").GrpcStatus;
 pub const JsonRpcRequest = @import("transports/mcp.zig").JsonRpcRequest;
 pub const JsonRpcResponse = @import("transports/mcp.zig").JsonRpcResponse;
 pub const JsonRpcError = @import("transports/mcp.zig").JsonRpcError;
@@ -50,8 +57,26 @@ pub const OpenApiConverter = @import("loaders/openapi.zig").OpenApiConverter;
 pub const ConvertResult = @import("loaders/openapi.zig").ConvertResult;
 pub const convertFromString = @import("loaders/openapi.zig").convertFromString;
 
+// Streaming
+pub const StreamChunk = @import("core/streaming.zig").StreamChunk;
+pub const StreamIterator = @import("core/streaming.zig").StreamIterator;
+pub const StreamingResponse = @import("core/streaming.zig").StreamingResponse;
+pub const fromBytes = @import("core/streaming.zig").fromBytes;
+pub const fromReader = @import("core/streaming.zig").fromReader;
+
+// Post-processors
+pub const PostProcessor = @import("core/postprocessor.zig").PostProcessor;
+pub const PostProcessorFn = @import("core/postprocessor.zig").PostProcessorFn;
+pub const PostProcessorChain = @import("core/postprocessor.zig").PostProcessorChain;
+pub const logProcessor = @import("core/postprocessor.zig").logProcessor;
+pub const trimProcessor = @import("core/postprocessor.zig").trimProcessor;
+pub const jsonValidateProcessor = @import("core/postprocessor.zig").jsonValidateProcessor;
+pub const extractFieldProcessor = @import("core/postprocessor.zig").extractFieldProcessor;
+pub const maskProcessor = @import("core/postprocessor.zig").maskProcessor;
+
 // Utilities
 pub const substitute = @import("core/substitution.zig").substitute;
+pub const buildQuery = @import("transports/graphql.zig").buildQuery;
 
 test {
     std.testing.refAllDecls(@This());
