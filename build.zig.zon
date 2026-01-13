@@ -1,0 +1,7 @@
+.{
+    .name = .utcp,
+    .version = "0.0.0",
+    .minimum_zig_version = "0.15.2",
+    .fingerprint = 0x3088066635f67f7c,
+    .paths = .{""},
+}

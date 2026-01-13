@@ -1,0 +1,33 @@
+# Zig build artifacts
+.zig-cache/
+zig-out/
+
+# Zig/Native build outputs
+*.o
+*.obj
+*.exe
+*.pdb
+*.dll
+*.lib
+*.a
+*.so
+*.dylib
+
+# Editors/IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local env/logs
+.env
+.env.*
+*.log
+
+# Optional local reference material (not required to build)
+utcp-upstream/
+utcp-repomix/
+zig-kb/
