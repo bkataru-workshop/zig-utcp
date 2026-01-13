@@ -26,8 +26,3 @@ Thumbs.db
 .env
 .env.*
 *.log
-
-# Optional local reference material (not required to build)
-utcp-upstream/
-utcp-repomix/
-zig-kb/
