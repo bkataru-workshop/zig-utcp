@@ -177,6 +177,197 @@ pub const HttpTransport = struct {
             .output = parsed.value,
         };
     }
+    
+    /// OAuth2 token response structure
+    pub const OAuth2TokenResponse = struct {
+        access_token: []const u8,
+        token_type: []const u8 = "Bearer",
+        expires_in: ?i64 = null,
+        refresh_token: ?[]const u8 = null,
+        scope: ?[]const u8 = null,
+    };
+    
+    /// Obtain OAuth2 access token using client credentials grant
+    pub fn obtainOAuth2Token(self: *HttpTransport, oauth2: anytype) !OAuth2TokenResponse {
+        var arena = std.heap.ArenaAllocator.init(self.allocator);
+        defer arena.deinit();
+        const aa = arena.allocator();
+        
+        const uri = std.Uri.parse(oauth2.token_url) catch return error.InvalidUrl;
+        
+        // Build form-urlencoded body
+        var body = std.ArrayList(u8).empty;
+        defer body.deinit(aa);
+        try body.appendSlice(aa, "grant_type=client_credentials");
+        try std.fmt.format(body.writer(aa), "&client_id={s}", .{oauth2.client_id});
+        if (oauth2.client_secret) |secret| {
+            try std.fmt.format(body.writer(aa), "&client_secret={s}", .{secret});
+        }
+        if (oauth2.scope) |scope| {
+            try std.fmt.format(body.writer(aa), "&scope={s}", .{scope});
+        }
+        
+        // Build headers
+        var headers = std.ArrayList(std.http.Header).empty;
+        defer headers.deinit(aa);
+        try headers.append(aa, .{ .name = "Content-Type", .value = "application/x-www-form-urlencoded" });
+        try headers.append(aa, .{ .name = "Accept", .value = "application/json" });
+        
+        // Make request
+        var server_header_buf: [8192]u8 = undefined;
+        var req = self.client.open(.POST, uri, .{
+            .server_header_buffer = &server_header_buf,
+            .extra_headers = headers.items,
+        }) catch return error.ConnectionFailed;
+        defer req.deinit();
+        
+        req.transfer_encoding = .{ .content_length = body.items.len };
+        req.send() catch return error.SendFailed;
+        req.writeAll(body.items) catch return error.SendFailed;
+        req.finish() catch return error.SendFailed;
+        req.wait() catch return error.ReceiveFailed;
+        
+        // Check response status
+        const status_code: u16 = @intFromEnum(req.response.status);
+        if (status_code >= 400) {
+            return error.AuthenticationError;
+        }
+        
+        // Read response body
+        var response_buf = std.ArrayList(u8).empty;
+        defer response_buf.deinit(aa);
+        while (true) {
+            var buf: [4096]u8 = undefined;
+            const n = req.read(&buf) catch return error.ReceiveFailed;
+            if (n == 0) break;
+            try response_buf.appendSlice(aa, buf[0..n]);
+        }
+        
+        // Parse JSON response
+        const parsed = std.json.parseFromSlice(std.json.Value, aa, response_buf.items, .{}) catch return error.ParseError;
+        
+        const obj = switch (parsed.value) {
+            .object => |o| o,
+            else => return error.ParseError,
+        };
+        
+        const access_token = switch (obj.get("access_token") orelse return error.ParseError) {
+            .string => |s| try self.allocator.dupe(u8, s),
+            else => return error.ParseError,
+        };
+        
+        const token_type = if (obj.get("token_type")) |tt| switch (tt) {
+            .string => |s| try self.allocator.dupe(u8, s),
+            else => "Bearer",
+        } else "Bearer";
+        
+        const expires_in: ?i64 = if (obj.get("expires_in")) |ei| switch (ei) {
+            .integer => |i| i,
+            else => null,
+        } else null;
+        
+        const refresh_token: ?[]const u8 = if (obj.get("refresh_token")) |rt| switch (rt) {
+            .string => |s| try self.allocator.dupe(u8, s),
+            else => null,
+        } else null;
+        
+        return OAuth2TokenResponse{
+            .access_token = access_token,
+            .token_type = token_type,
+            .expires_in = expires_in,
+            .refresh_token = refresh_token,
+        };
+    }
+    
+    /// Refresh OAuth2 access token using refresh token
+    pub fn refreshOAuth2Token(self: *HttpTransport, oauth2: anytype, refresh_token_str: []const u8) !OAuth2TokenResponse {
+        var arena = std.heap.ArenaAllocator.init(self.allocator);
+        defer arena.deinit();
+        const aa = arena.allocator();
+        
+        const uri = std.Uri.parse(oauth2.token_url) catch return error.InvalidUrl;
+        
+        // Build form-urlencoded body
+        var body = std.ArrayList(u8).empty;
+        defer body.deinit(aa);
+        try body.appendSlice(aa, "grant_type=refresh_token");
+        try std.fmt.format(body.writer(aa), "&client_id={s}", .{oauth2.client_id});
+        if (oauth2.client_secret) |secret| {
+            try std.fmt.format(body.writer(aa), "&client_secret={s}", .{secret});
+        }
+        try std.fmt.format(body.writer(aa), "&refresh_token={s}", .{refresh_token_str});
+        
+        // Build headers
+        var headers = std.ArrayList(std.http.Header).empty;
+        defer headers.deinit(aa);
+        try headers.append(aa, .{ .name = "Content-Type", .value = "application/x-www-form-urlencoded" });
+        try headers.append(aa, .{ .name = "Accept", .value = "application/json" });
+        
+        // Make request
+        var server_header_buf: [8192]u8 = undefined;
+        var req = self.client.open(.POST, uri, .{
+            .server_header_buffer = &server_header_buf,
+            .extra_headers = headers.items,
+        }) catch return error.ConnectionFailed;
+        defer req.deinit();
+        
+        req.transfer_encoding = .{ .content_length = body.items.len };
+        req.send() catch return error.SendFailed;
+        req.writeAll(body.items) catch return error.SendFailed;
+        req.finish() catch return error.SendFailed;
+        req.wait() catch return error.ReceiveFailed;
+        
+        // Check response status
+        const status_code: u16 = @intFromEnum(req.response.status);
+        if (status_code >= 400) {
+            return error.AuthenticationError;
+        }
+        
+        // Read response body
+        var response_buf = std.ArrayList(u8).empty;
+        defer response_buf.deinit(aa);
+        while (true) {
+            var buf: [4096]u8 = undefined;
+            const n = req.read(&buf) catch return error.ReceiveFailed;
+            if (n == 0) break;
+            try response_buf.appendSlice(aa, buf[0..n]);
+        }
+        
+        // Parse JSON response
+        const parsed = std.json.parseFromSlice(std.json.Value, aa, response_buf.items, .{}) catch return error.ParseError;
+        
+        const obj = switch (parsed.value) {
+            .object => |o| o,
+            else => return error.ParseError,
+        };
+        
+        const access_token = switch (obj.get("access_token") orelse return error.ParseError) {
+            .string => |s| try self.allocator.dupe(u8, s),
+            else => return error.ParseError,
+        };
+        
+        const token_type = if (obj.get("token_type")) |tt| switch (tt) {
+            .string => |s| try self.allocator.dupe(u8, s),
+            else => "Bearer",
+        } else "Bearer";
+        
+        const expires_in: ?i64 = if (obj.get("expires_in")) |ei| switch (ei) {
+            .integer => |i| i,
+            else => null,
+        } else null;
+        
+        const new_refresh_token: ?[]const u8 = if (obj.get("refresh_token")) |rt| switch (rt) {
+            .string => |s| try self.allocator.dupe(u8, s),
+            else => null,
+        } else null;
+        
+        return OAuth2TokenResponse{
+            .access_token = access_token,
+            .token_type = token_type,
+            .expires_in = expires_in,
+            .refresh_token = new_refresh_token,
+        };
+    }
 };
 
 /// Apply authentication to HTTP headers
@@ -204,9 +395,15 @@ fn applyAuth(
             const auth_value = try std.fmt.allocPrint(allocator, "Bearer {s}", .{bearer.token});
             try headers.append(allocator, .{ .name = "Authorization", .value = auth_value });
         },
-        .oauth2 => {
-            // TODO: Implement OAuth2 token flow
-            return error.AuthenticationError;
+        .oauth2 => |oauth2| {
+            // Use existing access token if available
+            if (oauth2.access_token) |token| {
+                const auth_value = try std.fmt.allocPrint(allocator, "Bearer {s}", .{token});
+                try headers.append(allocator, .{ .name = "Authorization", .value = auth_value });
+            } else {
+                // No access token - would need to call obtainOAuth2Token first
+                return error.AuthenticationError;
+            }
         },
         .none => {},
     }

@@ -25,6 +25,7 @@ pub const InMemoryToolRepository = @import("repository/memory.zig").InMemoryTool
 
 // Transports
 pub const HttpTransport = @import("transports/http.zig").HttpTransport;
+pub const OAuth2TokenResponse = @import("transports/http.zig").HttpTransport.OAuth2TokenResponse;
 pub const CliTransport = @import("transports/cli.zig").CliTransport;
 pub const McpTransport = @import("transports/mcp.zig").McpTransport;
 pub const SseTransport = @import("transports/sse.zig").SseTransport;
@@ -35,6 +36,12 @@ pub const TextFormat = @import("core/tool.zig").TextFormat;
 pub const JsonRpcRequest = @import("transports/mcp.zig").JsonRpcRequest;
 pub const JsonRpcResponse = @import("transports/mcp.zig").JsonRpcResponse;
 pub const JsonRpcError = @import("transports/mcp.zig").JsonRpcError;
+
+// Auth types
+pub const ApiKeyAuth = @import("core/provider.zig").ApiKeyAuth;
+pub const BasicAuth = @import("core/provider.zig").BasicAuth;
+pub const BearerAuth = @import("core/provider.zig").BearerAuth;
+pub const OAuth2Auth = @import("core/provider.zig").OAuth2Auth;
 
 // Loaders
 pub const JsonLoader = @import("loaders/json.zig").JsonLoader;
