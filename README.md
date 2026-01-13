@@ -1,6 +1,6 @@
 # zig-utcp
 
-**Universal Tool Calling Protocol** implementation for Zig 0.15.2+
+**Universal Tool Calling Protocol (UTCP)** implementation for Zig 0.15.2+
 
 A vendor-agnostic standard for LLM-tool integration supporting HTTP, CLI, MCP, SSE, WebSocket, and more.
 

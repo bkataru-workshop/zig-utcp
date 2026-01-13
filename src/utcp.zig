@@ -22,6 +22,10 @@ pub const InMemoryToolRepository = @import("repository/memory.zig").InMemoryTool
 // Transports
 pub const HttpTransport = @import("transports/http.zig").HttpTransport;
 pub const CliTransport = @import("transports/cli.zig").CliTransport;
+pub const McpTransport = @import("transports/mcp.zig").McpTransport;
+pub const JsonRpcRequest = @import("transports/mcp.zig").JsonRpcRequest;
+pub const JsonRpcResponse = @import("transports/mcp.zig").JsonRpcResponse;
+pub const JsonRpcError = @import("transports/mcp.zig").JsonRpcError;
 
 // Utilities
 pub const substitute = @import("core/substitution.zig").substitute;

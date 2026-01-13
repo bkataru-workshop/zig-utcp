@@ -62,4 +62,26 @@ pub fn build(b: *std.Build) void {
     run_cli.step.dependOn(&install_cli.step);
     const run_cli_step = b.step("run-cli", "Run CLI client example");
     run_cli_step.dependOn(&run_cli.step);
+
+    // Example: MCP client
+    const mcp_example = b.addExecutable(.{
+        .name = "mcp_client",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/mcp_client.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    mcp_example.root_module.addImport("utcp", utcp_mod);
+    
+    const install_mcp = b.addInstallArtifact(mcp_example, .{});
+    example_step.dependOn(&install_mcp.step);
+    
+    const run_mcp = b.addRunArtifact(mcp_example);
+    run_mcp.step.dependOn(&install_mcp.step);
+    if (b.args) |args| {
+        run_mcp.addArgs(args);
+    }
+    const run_mcp_step = b.step("run-mcp", "Run MCP client example");
+    run_mcp_step.dependOn(&run_mcp.step);
 }

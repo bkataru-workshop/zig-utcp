@@ -18,10 +18,11 @@
 - [x] Capture stdout/stderr -> JSON parsing
 - [x] Example: calling a CLI tool
 
-## Phase 4: MCP Transport (Next)
-- [ ] mcp.zig: JSON-RPC 2.0 stdio mode
+## Phase 4: MCP Transport
+- [x] mcp.zig: JSON-RPC 2.0 stdio mode
+- [x] MCP HTTP mode (JSON-RPC over HTTP)
+- [x] Example: MCP client
 - [ ] MCP SSE mode (HTTP + SSE for events)
-- [ ] Example: MCP client + server
 
 ## Phase 5: Polish + Release
 - [x] CI/CD (GitHub Actions)
