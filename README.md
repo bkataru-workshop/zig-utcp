@@ -25,13 +25,13 @@ A vendor-agnostic standard for LLM-tool integration supporting HTTP, CLI, MCP, S
 ### Option 1: Using `zig fetch` (Recommended)
 
 ```bash
-zig fetch --save git+https://github.com/YOUR_USERNAME/zig-utcp.git
+zig fetch --save git+https://github.com/bkataru/zig-utcp.git
 ```
 
 To fetch a specific version:
 
 ```bash
-zig fetch --save git+https://github.com/YOUR_USERNAME/zig-utcp.git#v0.1.0
+zig fetch --save git+https://github.com/bkataru/zig-utcp.git#v0.1.0
 ```
 
 ### Option 2: Manual Configuration
@@ -41,7 +41,7 @@ Add to your `build.zig.zon`:
 ```zig
 .dependencies = .{
     .utcp = .{
-        .url = "git+https://github.com/YOUR_USERNAME/zig-utcp.git",
+        .url = "git+https://github.com/bkataru/zig-utcp.git",
         .hash = "...", // Run `zig build` to get the correct hash
     },
 },
@@ -96,7 +96,7 @@ pub fn build(b: *std.Build) void {
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/zig-utcp.git
+git clone https://github.com/bkataru/zig-utcp.git
 cd zig-utcp
 
 # Build the library
