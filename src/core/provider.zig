@@ -38,7 +38,7 @@ pub const BearerAuth = struct {
 
 pub const OAuth2Auth = struct {
     client_id: []const u8,
-    client_secret: []const u8,
+    client_secret: ?[]const u8 = null,
     token_url: []const u8,
     scope: ?[]const u8 = null,
     // Runtime token storage (mutable)
